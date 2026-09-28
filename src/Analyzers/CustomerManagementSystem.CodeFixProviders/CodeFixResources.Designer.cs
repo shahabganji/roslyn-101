@@ -50,5 +50,11 @@ namespace CustomerManagementSystem.CodeFixProviders {
                 return ResourceManager.GetString("SHG001CodeFixTitle", resourceCulture);
             }
         }
+        
+        internal static string SHG002CodeFixTitle {
+            get {
+                return ResourceManager.GetString("SHG002CodeFixTitle", resourceCulture);
+            }
+        }
     }
 }

@@ -19,4 +19,7 @@
     <data name="SHG001CodeFixTitle" xml:space="preserve">
         <value>Replace '{0}' with '{1}'</value><comment>The title of the code fix.</comment>
     </data>
+    <data name="SHG002CodeFixTitle" xml:space="preserve">
+        <value>Add Apply method for '{0}'</value><comment>The title of the code fix. {0} is the event name.</comment>
+    </data>
 </root>

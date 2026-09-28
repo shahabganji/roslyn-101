@@ -68,5 +68,23 @@ namespace CustomerManagementSystem.Analyzers {
                 return ResourceManager.GetString("SHG001Title", resourceCulture);
             }
         }
+        
+        internal static string SHG002Description {
+            get {
+                return ResourceManager.GetString("SHG002Description", resourceCulture);
+            }
+        }
+        
+        internal static string SHG002MessageFormat {
+            get {
+                return ResourceManager.GetString("SHG002MessageFormat", resourceCulture);
+            }
+        }
+        
+        internal static string SHG002Title {
+            get {
+                return ResourceManager.GetString("SHG002Title", resourceCulture);
+            }
+        }
     }
 }

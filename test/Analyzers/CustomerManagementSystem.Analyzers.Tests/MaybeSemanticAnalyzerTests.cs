@@ -113,4 +113,28 @@ public class MaybeSemanticAnalyzerTests
         // Assert
         await analyserTest.RunAsync(TestContext.Current.CancellationToken);
     }
+
+    [Fact]
+    public async Task Detects_NO_diagnostic_and_does_not_crash_for_throwing_error_inside_a_constructor()
+    {
+        // Arrange
+        const string source = """
+                              using System;
+
+                              public class Program
+                              {
+                                  public Program(string value)
+                                  {
+                                      if (value == null)
+                                          throw new ArgumentNullException(nameof(value));
+                                  }
+                              }
+                              """;
+
+        var analyserTest = DiagnosticTestUtilities.GetAnalyzerForOption<MaybeSemanticAnalyzer, DefaultVerifier>(
+            source, ImmutableArray<DiagnosticResult>.Empty);
+
+        // Assert
+        await analyserTest.RunAsync(TestContext.Current.CancellationToken);
+    }
 }
