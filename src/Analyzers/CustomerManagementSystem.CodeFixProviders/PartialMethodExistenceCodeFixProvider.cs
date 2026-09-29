@@ -26,11 +26,35 @@ public class PartialMethodExistenceCodeFixProvider : CodeFixProvider
 
     // BatchFixer merges independent text changes and conflicts when several Apply methods are appended to the
     // same class, so all diagnostics of a document are applied sequentially on the same syntax root instead.
+    // A partial aggregate gets the same diagnostic on each of its declarations; when fixing beyond a single
+    // document, only the diagnostic on the aggregate's first declaration is fixed so Apply is added only once.
     public override FixAllProvider GetFixAllProvider() =>
         FixAllProvider.Create(async (context, document, diagnostics) =>
-            diagnostics.IsDefaultOrEmpty
-                ? document
-                : await AddApplyMethodsAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
+        {
+            if (diagnostics.IsDefaultOrEmpty)
+                return document;
+
+            if (context.Scope != FixAllScope.Document)
+            {
+                var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+                var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                if (semanticModel is null || root is null)
+                    return document;
+
+                diagnostics = diagnostics.Where(d =>
+                    FindTypeDeclaration(root, d) is not { } declaration
+                    || semanticModel.GetDeclaredSymbol(declaration, context.CancellationToken) is not { } aggregate
+                    || aggregate.Locations.FirstOrDefault(IsHandWritten) is not { } first
+                    || first.SourceTree == d.Location.SourceTree && first.SourceSpan == d.Location.SourceSpan)
+                    .ToImmutableArray();
+            }
+
+            return await AddApplyMethodsAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false);
+        });
+
+    private static bool IsHandWritten(Location location) =>
+        location.IsInSource
+        && !location.SourceTree!.FilePath.EndsWith(".g.cs", System.StringComparison.OrdinalIgnoreCase);
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -65,6 +89,7 @@ public class PartialMethodExistenceCodeFixProvider : CodeFixProvider
 
         // Resolve every diagnostic against the original tree first, then apply the edits on a tracked root.
         var edits = new List<(TypeDeclarationSyntax TypeDeclaration, EventInfo Event)>();
+        var handled = new HashSet<(string? Aggregate, string Event)>();
         var namespacesToImport = new List<string>();
         foreach (var diagnostic in diagnostics)
         {
@@ -72,9 +97,9 @@ public class PartialMethodExistenceCodeFixProvider : CodeFixProvider
                 || FindTypeDeclaration(root, diagnostic) is not { } typeDeclaration)
                 continue;
 
-            if (edits.Any(e => e.TypeDeclaration == typeDeclaration && e.Event.Name == eventInfo.Name
-                                                                    && e.Event.FullyQualifiedName ==
-                                                                    eventInfo.FullyQualifiedName))
+            // The same aggregate+event may be reported on several partial declarations: add Apply only once.
+            var aggregate = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken)?.ToDisplayString();
+            if (!handled.Add((aggregate, eventInfo.FullyQualifiedName)))
                 continue;
 
             edits.Add((typeDeclaration, eventInfo));

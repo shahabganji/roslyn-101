@@ -10,6 +10,7 @@ public sealed partial class Customer : IAmAggregateRoot
     public string FullName { get; private set; } = null!;
     public string Email { get; private set; } = null!;
     public DateTime DateOfBirth { get; private set; }
+
     public bool IsRegistrationConfirmed { get; private set; }
 
     public void Apply(IEvent @event)

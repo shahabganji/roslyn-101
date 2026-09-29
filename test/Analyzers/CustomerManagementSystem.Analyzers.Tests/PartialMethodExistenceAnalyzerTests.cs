@@ -154,4 +154,47 @@ public class PartialMethodExistenceAnalyzerTests
 
         await analyserTest.RunAsync(TestContext.Current.CancellationToken);
     }
+    
+    [Fact]
+    public async Task Detects_diagnostic_when_aggregate_is_partial_class_in_multiple_places()
+    {
+        const string source = """
+                              namespace Demo;
+
+                              public interface IAmAggregateRoot;
+                              public interface IEvent<TAggregate>;
+
+                              public sealed record CustomerRegistered() : IEvent<Customer>;
+                              public sealed record CustomerDeactivated() : IEvent<Customer>;
+                              public sealed record RegistrationConfirmed() : IEvent<Customer>;
+
+                              public sealed partial class Customer : IAmAggregateRoot
+                              {
+                                  public void Apply(CustomerRegistered @event) { }
+                              }
+                              
+                              public sealed partial class Customer : IAmAggregateRoot
+                              {
+                                  public void Apply(CustomerDeactivated @event) { }
+                              }
+                              """;
+
+        var firstExpectationLocation = CSharpAnalyzerVerifier<PartialMethodExistenceAnalyzer, DefaultVerifier>
+            .Diagnostic(PartialMethodExistenceAnalyzer.DiagnosticId)
+            .WithLocation(10, 29)
+            .WithArguments("Customer", "RegistrationConfirmed");
+
+        var secondExpectationLocation = CSharpAnalyzerVerifier<PartialMethodExistenceAnalyzer, DefaultVerifier>
+            .Diagnostic(PartialMethodExistenceAnalyzer.DiagnosticId)
+            .WithLocation(15, 29)
+            .WithArguments("Customer", "RegistrationConfirmed");
+
+        
+        var analyserTest =
+            DiagnosticTestUtilities.GetAnalyzerForOption<PartialMethodExistenceAnalyzer, DefaultVerifier>(
+                source, [firstExpectationLocation, secondExpectationLocation]);
+
+        await analyserTest.RunAsync(TestContext.Current.CancellationToken);
+    }
+
 }

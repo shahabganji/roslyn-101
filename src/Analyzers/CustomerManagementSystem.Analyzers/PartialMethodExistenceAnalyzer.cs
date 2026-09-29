@@ -54,10 +54,13 @@ public class PartialMethodExistenceAnalyzer : DiagnosticAnalyzer
         if (type.TypeKind != TypeKind.Class || !type.AllInterfaces.Any(i => i.Name == "IAmAggregateRoot"))
             return;
 
-        // Where the squiggle goes: the class name, preferring a hand-written file over a generated (*.g.cs) one.
-        var location = type.Locations.FirstOrDefault(l =>
-            l.IsInSource && !l.SourceTree!.FilePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase));
-        if (location is null)
+        // Where the squiggles go: the class name of every hand-written declaration (generated *.g.cs files are skipped).
+        // A partial aggregate can be split over several declarations; we report on each of them, so the user sees
+        // the error whichever part of the class they are looking at (and can fix it right there).
+        var locations = type.Locations
+            .Where(l => l.IsInSource && !l.SourceTree!.FilePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
+            .ToImmutableArray();
+        if (locations.IsEmpty)
             return;
 
         // Find every event type in the project (types implementing IEvent<T>).
@@ -73,7 +76,7 @@ public class PartialMethodExistenceAnalyzer : DiagnosticAnalyzer
             if (!BelongsTo(@event, type) || HasApplyMethodFor(type, @event))
                 continue;
 
-            // Report one warning per missing Apply method.
+            // Report one diagnostic per missing Apply method (on every declaration of the aggregate).
             var properties = ImmutableDictionary<string, string?>.Empty
                 .Add(EventNamePropertyKey, @event.Name)
                 .Add(EventNamespacePropertyKey,
@@ -81,7 +84,8 @@ public class PartialMethodExistenceAnalyzer : DiagnosticAnalyzer
                 .Add(EventMetadataNamePropertyKey, @event.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
 
             // aggregate.Name and @event.Name fill the {0} and {1} placeholders of the message.
-            context.ReportDiagnostic(Diagnostic.Create(Rule, location, properties, type.Name, @event.Name));
+            foreach (var location in locations)
+                context.ReportDiagnostic(Diagnostic.Create(Rule, location, properties, type.Name, @event.Name));
         }
     }
 
