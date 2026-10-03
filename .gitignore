@@ -64,3 +64,6 @@ bower_components/
 # IDE settings
 *.sln.DotSettings.user
 
+.junie
+
+**/artifacts/
