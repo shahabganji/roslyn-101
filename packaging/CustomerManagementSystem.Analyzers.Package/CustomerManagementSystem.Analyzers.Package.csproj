@@ -1,13 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <IsPackable>true</IsPackable>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
-        <IsPackable>true</IsPackable>
         <Nullable>enable</Nullable>
-        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Version>0.0.1-preview.1</Version>
+        <Title>.NET Developer Days 2026 Warsaw</Title>
+        <Authors>Shahab Ganji</Authors>
+        <Description>A package for Roslyn 101 in Warsaw</Description>
+        <Copyright>© Shahab Ganji - 2026</Copyright>
+        <PackageProjectUrl>https://github.com/shahabganji/roslyn-101</PackageProjectUrl>
+        <PackageReleaseNotes>This is a package to demo how source generators work in .NET Developer Days Warsaw</PackageReleaseNotes>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/shahabganji/roslyn-101</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>Roslyn SourceGenerator DiagnosticAnalyzor</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,13 +32,18 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md"/>
+        <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Link="LICENSE"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <!-- Package the analyzer, code fix provider, and source generator assemblies into analyzers/dotnet/cs -->
         <None Include="..\..\src\Analyzers\CustomerManagementSystem.Analyzers\bin\$(Configuration)\netstandard2.0\CustomerManagementSystem.Analyzers.dll"
-              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
         <None Include="..\..\src\Analyzers\CustomerManagementSystem.CodeFixProviders\bin\$(Configuration)\netstandard2.0\CustomerManagementSystem.CodeFixProviders.dll"
-              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
         <None Include="..\..\src\SourceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\bin\$(Configuration)\netstandard2.0\CustomerManagementSystem.EventStoreSrouceGenerator.dll"
-              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
     </ItemGroup>
 
     <Target Name="GetTargetPath"
@@ -41,13 +61,13 @@
 
     <Target Name="PublishToLocalNuGet" AfterTargets="Pack">
         <ItemGroup>
-            <GeneratedPackages Include="@(NuGetPackOutput)" Condition="'%(Extension)' == '.nupkg' or '%(Extension)' == '.snupkg'" />
+            <GeneratedPackages Include="@(NuGetPackOutput)" Condition="'%(Extension)' == '.nupkg' or '%(Extension)' == '.snupkg'"/>
         </ItemGroup>
-        <MakeDir Directories="/Users/shahab-the-guy/dev/local-nuget" Condition="!Exists('/Users/shahab-the-guy/dev/local-nuget')" />
+        <MakeDir Directories="/Users/shahab-the-guy/dev/local-nuget" Condition="!Exists('/Users/shahab-the-guy/dev/local-nuget')"/>
         <Copy SourceFiles="@(GeneratedPackages)"
               DestinationFolder="/Users/shahab-the-guy/dev/local-nuget"
-              SkipUnchangedFiles="false" />
-        <Message Importance="high" Text="Published @(GeneratedPackages) to /Users/shahab-the-guy/dev/local-nuget" />
+              SkipUnchangedFiles="false"/>
+        <Message Importance="high" Text="Published @(GeneratedPackages) to /Users/shahab-the-guy/dev/local-nuget"/>
     </Target>
 
 </Project>
