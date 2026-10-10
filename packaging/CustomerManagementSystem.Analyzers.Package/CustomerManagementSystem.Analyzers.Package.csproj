@@ -4,10 +4,12 @@
         <IsPackable>true</IsPackable>
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>latest</LangVersion>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
         <Nullable>enable</Nullable>
+        
+        <!-- NO  lib/ runtime folder is created -->
+        <IncludeBuildOutput>false</IncludeBuildOutput>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -36,14 +38,59 @@
         <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Link="LICENSE"/>
     </ItemGroup>
 
+    <PropertyGroup>
+        <!-- Lowest Roslyn version the package supports (incremental generators need >= 4.0) -->
+        <MinRoslynVersion>4.0.1</MinRoslynVersion>
+    </PropertyGroup>
+
+    <!-- Rebuild all Roslyn components against the minimum supported Roslyn version
+         into separate obj/bin folders (own restore!), so each roslynX.Y folder ships
+         assemblies actually compiled against that Roslyn version. -->
+    <Target Name="BuildRoslyn40Assets" BeforeTargets="_GetPackageFiles;GenerateNuspec">
+        <Exec Command="dotnet build &quot;%(Roslyn40Project.Identity)&quot; -c $(Configuration) -p:RoslynVersion=$(MinRoslynVersion) -p:BaseIntermediateOutputPath=obj/roslyn4.0/ -p:DefaultItemExcludes=obj/** -p:OutputPath=bin/$(Configuration)/roslyn4.0/netstandard2.0/ --nologo -v:q"
+              Condition="'@(Roslyn40Project)' != ''"/>
+    </Target>
+
+    <Target Name="BuildRoslyn41Assets" BeforeTargets="_GetPackageFiles;GenerateNuspec">
+        <Exec Command="dotnet build &quot;%(Roslyn41Project.Identity)&quot; -c $(Configuration) -p:RoslynVersion=4.1 -p:BaseIntermediateOutputPath=obj/roslyn4.1/ -p:DefaultItemExcludes=obj/** -p:OutputPath=bin/$(Configuration)/roslyn4.1/netstandard2.0/ --nologo -v:q"
+              Condition="'@(Roslyn40Project)' != ''"/>
+    </Target>
+
     <ItemGroup>
-        <!-- Package the analyzer, code fix provider, and source generator assemblies into analyzers/dotnet/cs -->
+        <Roslyn40Project Visible="false" Include="..\..\src\Analyzers\CustomerManagementSystem.CodeFixProviders\CustomerManagementSystem.CodeFixProviders.csproj"/>
+        <Roslyn40Project Visible="false" Include="..\..\src\SourceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Roslyn41Project Visible="false" Include="..\..\src\Analyzers\CustomerManagementSystem.CodeFixProviders\CustomerManagementSystem.CodeFixProviders.csproj"/> 
+        <Roslyn41Project Visible="false" Include="..\..\src\SourceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Roslyn 4.0+ compilers: assemblies compiled against Microsoft.CodeAnalysis $(MinRoslynVersion) -->
+        <None Include="..\..\src\Analyzers\CustomerManagementSystem.Analyzers\bin\$(Configuration)\roslyn4.0\netstandard2.0\CustomerManagementSystem.Analyzers.dll"
+              Pack="true" PackagePath="analyzers/dotnet/roslyn4.0/cs" Visible="false"/>
+        <None Include="..\..\src\Analyzers\CustomerManagementSystem.CodeFixProviders\bin\$(Configuration)\roslyn4.0\netstandard2.0\CustomerManagementSystem.CodeFixProviders.dll"
+              Pack="true" PackagePath="analyzers/dotnet/roslyn4.0/cs" Visible="false"/>
+        <None Include="..\..\src\SourceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\bin\$(Configuration)\roslyn4.0\netstandard2.0\CustomerManagementSystem.EventStoreSrouceGenerator.dll"
+              Pack="true" PackagePath="analyzers/dotnet/roslyn4.0/cs" Visible="false"/>
+
+        <!-- Roslyn 4.1+ compilers: assemblies compiled against Microsoft.CodeAnalysis $(MinRoslynVersion) -->
+        <None Include="..\..\src\Analyzers\CustomerManagementSystem.Analyzers\bin\$(Configuration)\roslyn4.1\netstandard2.0\CustomerManagementSystem.Analyzers.dll"
+              Pack="true" PackagePath="analyzers/dotnet/roslyn4.1/cs" Visible="false"/>
+        <None Include="..\..\src\Analyzers\CustomerManagementSystem.CodeFixProviders\bin\$(Configuration)\roslyn4.1\netstandard2.0\CustomerManagementSystem.CodeFixProviders.dll"
+              Pack="true" PackagePath="analyzers/dotnet/roslyn4.1/cs" Visible="false"/>
+        <None Include="..\..\src\SourceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\bin\$(Configuration)\roslyn4.1\netstandard2.0\CustomerManagementSystem.EventStoreSrouceGenerator.dll"
+              Pack="true" PackagePath="analyzers/dotnet/roslyn4.1/cs" Visible="false"/>
+
+        <!-- Roslyn 5.9+ compilers: assemblies compiled against Microsoft.CodeAnalysis 5.9 (default build).
+             No plain analyzers/dotnet/cs fallback: Roslyn < 4.0 cannot load these assemblies. -->
         <None Include="..\..\src\Analyzers\CustomerManagementSystem.Analyzers\bin\$(Configuration)\netstandard2.0\CustomerManagementSystem.Analyzers.dll"
-              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+              Pack="true" PackagePath="analyzers/dotnet/roslyn5.9/cs" Visible="false"/>
         <None Include="..\..\src\Analyzers\CustomerManagementSystem.CodeFixProviders\bin\$(Configuration)\netstandard2.0\CustomerManagementSystem.CodeFixProviders.dll"
-              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+              Pack="true" PackagePath="analyzers/dotnet/roslyn5.9/cs" Visible="false"/>
         <None Include="..\..\src\SourceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\bin\$(Configuration)\netstandard2.0\CustomerManagementSystem.EventStoreSrouceGenerator.dll"
-              Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+              Pack="true" PackagePath="analyzers/dotnet/roslyn5.9/cs" Visible="false"/>
     </ItemGroup>
 
     <Target Name="GetTargetPath"

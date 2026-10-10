@@ -10,7 +10,7 @@ namespace CustomerManagementSystem.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
 {
-    // Preferred format of DiagnosticId is Your Prefix + Number, e.g. CA1234.
+    // The preferred format of DiagnosticId is Your Prefix + Number, e.g. CA1234.
     public const string DiagnosticId = "SHG001";
 
     // Feel free to use raw strings if you don't need localization.
@@ -26,7 +26,7 @@ public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
         new LocalizableResourceString(nameof(Resources.SHG001Description), Resources.ResourceManager,
             typeof(Resources));
 
-    // The category of the diagnostic (Design, Naming etc.).
+    // The category of the diagnostic (Design, Naming, etc.).
     private const string Category = "Usage";
 
     private static readonly DiagnosticDescriptor Rule = new(DiagnosticId, Title, MessageFormat, Category,
@@ -35,7 +35,12 @@ public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
     );
 
     // Keep in mind: you have to list your rules here.
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = [Rule];
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
+#if ROSLYN_HAS_COLLECTION_EXPRESSIONS
+        [Rule];
+#else
+        ImmutableArray.Create(Rule);
+#endif
 
     public override void Initialize(AnalysisContext context)
     {
@@ -45,7 +50,7 @@ public class MaybeSemanticAnalyzer : DiagnosticAnalyzer
         // You must call this method to enable the Concurrent Execution.
         context.EnableConcurrentExecution();
 
-        // Subscribe to semantic (compile time) action invocation, e.g. throw .
+        // Subscribe to semantic (compile time) action invocation, e.g. throw
         context.RegisterOperationAction(AnalyzeThrowStatements, OperationKind.Throw);
     }
 

@@ -1,0 +1,14 @@
+<Project>
+    <PropertyGroup>
+        <!-- Overridable per-build (e.g. /p:RoslynVersion=4.0.1) to multi-target the
+             Roslyn components against several compiler versions when packing. -->
+        <RoslynVersion Condition="'$(RoslynVersion)' == ''">5.9.0</RoslynVersion>
+    </PropertyGroup>
+
+    <!-- Roslyn 4.9+ ships System.Collections.Immutable 8.0, which added the
+         CollectionBuilder support required to use C# 12 collection expressions
+         with ImmutableArray<T>. -->
+    <PropertyGroup>
+        <DefineConstants Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(RoslynVersion)', '4.9'))">$(DefineConstants);ROSLYN_HAS_COLLECTION_EXPRESSIONS</DefineConstants>
+    </PropertyGroup>
+</Project>

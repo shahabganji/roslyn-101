@@ -22,7 +22,11 @@ public class PartialMethodExistenceCodeFixProvider : CodeFixProvider
     private const string EquivalenceKeyPrefix = "AddApplyMethod_";
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+#if ROSLYN_HAS_COLLECTION_EXPRESSIONS
         [PartialMethodExistenceAnalyzer.DiagnosticId];
+#else
+        ImmutableArray.Create(PartialMethodExistenceAnalyzer.DiagnosticId);
+#endif
 
     // BatchFixer merges independent text changes and conflicts when several Apply methods are appended to the
     // same class, so all diagnostics of a document are applied sequentially on the same syntax root instead.
@@ -73,7 +77,13 @@ public class PartialMethodExistenceCodeFixProvider : CodeFixProvider
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: string.Format(CodeFixResources.SHG002CodeFixTitle, eventInfo.Name),
-                    token => AddApplyMethodsAsync(context.Document, [diagnostic], token),
+                    token => AddApplyMethodsAsync(context.Document,
+#if ROSLYN_HAS_COLLECTION_EXPRESSIONS
+                        [diagnostic],
+#else
+                        ImmutableArray.Create(diagnostic),
+#endif
+                        token),
                     equivalenceKey: EquivalenceKeyPrefix + eventInfo.Name),
                 diagnostic);
         }
