@@ -31,7 +31,12 @@ public class PartialMethodExistenceAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         description: new LocalizableResourceString(nameof(Resources.SHG002Description), Resources.ResourceManager, typeof(Resources)));
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = [Rule];
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
+#if ROSLYN_HAS_COLLECTION_EXPRESSIONS
+        [Rule];
+#else
+        ImmutableArray.Create(Rule);
+#endif
 
     public override void Initialize(AnalysisContext context)
     {

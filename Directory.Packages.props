@@ -1,6 +1,7 @@
 <Project>
     <PropertyGroup>
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <!-- RoslynVersion is defined (and overridable) in Directory.Build.props -->
     </PropertyGroup>
     <ItemGroup>
         <PackageVersion Include="Newtonsoft.Json" Version="13.0.4"/>
@@ -12,9 +13,9 @@
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12"/>
 
 
-        <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0"/>
-        <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0"/>
-        <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.9.0"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(RoslynVersion)"/>
+        <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(RoslynVersion)"/>
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.4"/>
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.4"/>
         <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" Version="1.1.4"/>

@@ -18,7 +18,12 @@ namespace CustomerManagementSystem.CodeFixProviders;
 public class MaybeCodeFixProvider : CodeFixProvider
 {
     // Specify the diagnostic IDs of analyzers that are expected to be linked.
-    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = [MaybeSemanticAnalyzer.DiagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+#if ROSLYN_HAS_COLLECTION_EXPRESSIONS
+        [MaybeSemanticAnalyzer.DiagnosticId];
+#else
+        ImmutableArray.Create(MaybeSemanticAnalyzer.DiagnosticId);
+#endif
 
     // If you don't need the 'fix all' behaviour, return null.
     public override FixAllProvider? GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
