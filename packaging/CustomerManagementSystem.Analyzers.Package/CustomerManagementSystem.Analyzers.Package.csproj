@@ -24,7 +24,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/shahabganji/roslyn-101</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageTags>Roslyn SourceGenerator DiagnosticAnalyzor</PackageTags>
+        <PackageTags>Roslyn SourceGenerator DiagnosticAnalyzor CodeFix Provider</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
