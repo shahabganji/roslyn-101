@@ -11,12 +11,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Analyzers\CustomerManagementSystem.Analyzers\CustomerManagementSystem.Analyzers.csproj"
-                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-        <ProjectReference Include="..\..\Analyzers\CustomerManagementSystem.CodeFixProviders\CustomerManagementSystem.CodeFixProviders.csproj"
-                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+<!--        <ProjectReference Include="..\..\Analyzers\CustomerManagementSystem.Analyzers\CustomerManagementSystem.Analyzers.csproj"-->
+<!--                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>-->
+<!--        <ProjectReference Include="..\..\Analyzers\CustomerManagementSystem.CodeFixProviders\CustomerManagementSystem.CodeFixProviders.csproj"-->
+<!--                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>-->
 
-        <ProjectReference Include="..\..\SourceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator.csproj"
-                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+<!--        <ProjectReference Include="..\..\SourceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator\CustomerManagementSystem.EventStoreSrouceGenerator.csproj"-->
+<!--                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>-->
     </ItemGroup>
 </Project>

@@ -49,49 +49,6 @@ public class PartialMethodExistenceAnalyzer : DiagnosticAnalyzer
 
     private static void AnalyzeType(SymbolAnalysisContext context)
     {
-        // The IDE cancels analysis whenever the user keeps typing (the result would be stale anyway).
-        // Checking the token lets us stop early instead of wasting CPU; the throw is expected and handled by Roslyn.
-        var cancellationToken = context.CancellationToken;
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // Only classes that implement IAmAggregateRoot are aggregates; skip everything else.
-        var type = (INamedTypeSymbol)context.Symbol;
-        if (type.TypeKind != TypeKind.Class || !type.AllInterfaces.Any(i => i.Name == "IAmAggregateRoot"))
-            return;
-
-        // Where the squiggles go: the class name of every hand-written declaration (generated *.g.cs files are skipped).
-        // A partial aggregate can be split over several declarations; we report on each of them, so the user sees
-        // the error whichever part of the class they are looking at (and can fix it right there).
-        var locations = type.Locations
-            .Where(l => l.IsInSource && !l.SourceTree!.FilePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
-            .ToImmutableArray();
-        if (locations.IsEmpty)
-            return;
-
-        // Find every event type in the project (types implementing IEvent<T>).
-        // This is the most expensive part (it scans the whole project), so it gets the token too.
-        var allEvents = FindAllEvents(context.Compilation, cancellationToken);
-
-        foreach (var @event in allEvents)
-        {
-            // Check again on each iteration: a project may have many events.
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Keep only events that belong to THIS aggregate, and that it doesn't handle yet.
-            if (!BelongsTo(@event, type) || HasApplyMethodFor(type, @event))
-                continue;
-
-            // Report one diagnostic per missing Apply method (on every declaration of the aggregate).
-            var properties = ImmutableDictionary<string, string?>.Empty
-                .Add(EventNamePropertyKey, @event.Name)
-                .Add(EventNamespacePropertyKey,
-                    @event.ContainingNamespace.IsGlobalNamespace ? "" : @event.ContainingNamespace.ToDisplayString())
-                .Add(EventMetadataNamePropertyKey, @event.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-
-            // aggregate.Name and @event.Name fill the {0} and {1} placeholders of the message.
-            foreach (var location in locations)
-                context.ReportDiagnostic(Diagnostic.Create(Rule, location, properties, type.Name, @event.Name));
-        }
     }
 
     /// <summary>
